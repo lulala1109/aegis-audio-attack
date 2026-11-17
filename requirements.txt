@@ -1,0 +1,14 @@
+# Audio jailbreak attack runtime and evaluation scripts.
+torch>=2.4
+transformers     # version depends on the model environment
+accelerate
+huggingface_hub
+librosa
+soundfile
+numpy
+pandas
+pyyaml
+edge-tts
+tqdm
+scikit-learn
+matplotlib
