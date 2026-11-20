@@ -12,3 +12,7 @@ edge-tts
 tqdm
 scikit-learn
 matplotlib
+# Phi-4-multimodal target (optional)
+peft
+torchvision   # must match the installed torch/CUDA build
+backoff

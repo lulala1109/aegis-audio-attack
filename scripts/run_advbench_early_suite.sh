@@ -49,7 +49,7 @@ RESUME="${RESUME:-1}"
 
 read -r -a SEEDS <<< "$SEEDS_STR"
 
-export HF_HOME="${HF_HOME:-/home/aisecurity/liuanran/hf-cache}"
+export HF_HOME="${HF_HOME:-/data/lar/hf-cache}"
 export HF_HUB_OFFLINE="${HF_HUB_OFFLINE:-1}"
 export TRANSFORMERS_OFFLINE="${TRANSFORMERS_OFFLINE:-1}"
 export TOKENIZERS_PARALLELISM=false

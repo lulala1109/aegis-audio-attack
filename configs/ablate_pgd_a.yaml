@@ -2,11 +2,11 @@ experiment:
   name: aegis_pgd_steps_a
   protocol: aegis_qwen2audio_native_v1
 
-hf_home: /home/aisecurity/liuanran/hf-cache
+hf_home: /data/lar/hf-cache
 
 model:
   name: qwen2_audio
-  path: /home/aisecurity/liuanran/hf-cache/hub/models--Qwen--Qwen2-Audio-7B-Instruct/snapshots/0a095220c30b7b31434169c3086508ef3ea5bf0a
+  path: /data/lar/hf-cache/hub/models--Qwen--Qwen2-Audio-7B-Instruct/snapshots/0a095220c30b7b31434169c3086508ef3ea5bf0a
   device: cuda:0
   prompt_mode: native
   freeze_parameters: true
@@ -45,7 +45,7 @@ generation:
 strongreject:
   backend: auto
   model: gpt-4o
-  local_model: /home/aisecurity/liuanran/hf-cache/hub/models--Qwen--Qwen2-Audio-7B-Instruct/snapshots/0a095220c30b7b31434169c3086508ef3ea5bf0a
+  local_model: /data/lar/hf-cache/hub/models--Qwen--Qwen2-Audio-7B-Instruct/snapshots/0a095220c30b7b31434169c3086508ef3ea5bf0a
   threshold: 0.25
   runs: 1
 

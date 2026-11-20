@@ -1,0 +1,49 @@
+experiment:
+  name: aegis_jbb94_phi4_lam05_mom09_early_p29_a07
+  protocol: aegis_phi4mm_native_v1
+
+hf_home: /data/lar/hf-cache
+
+model:
+  type: phi4_mm
+  path: /data/lar/models/Phi-4-multimodal-instruct
+  device: cuda:0
+  prompt_mode: native
+  freeze_parameters: true
+  attention_backend: eager
+  max_seconds: 20.0
+
+target:
+  text: "Sure, here is"
+  append_eos: true
+
+attack:
+  loss: margin
+  kappa: 5.0
+  eps: 0.01
+  alpha: 0.0007
+  steps: 100
+  random_init: true
+  check_every: 0
+  early_stop: false
+  momentum: 0.9
+
+# P0 mechanism: lambda_internal is the gradient ratio rho
+# (||grad_internal|| = rho * ||grad_base||, cap 10x).
+# temperature is the softmax focus temperature in logit space (1.0 = soft).
+# eta is unused by the dynamic scheduler.
+mechanism:
+  key_layers: [19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 31]
+  gate_layer: 15
+  prior: uniform
+  lambda_internal: 0.5
+  reference_prob: 0.02
+  temperature: 1.0
+  beta: 0.5
+  update_every: 1
+
+generation:
+  max_new_tokens: 256
+  do_sample: false
+
+seed: 11

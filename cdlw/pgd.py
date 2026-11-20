@@ -15,7 +15,7 @@ import torch
 
 from .determinism import make_generator, seed_everything
 from .io import snr_db, tensor_to_list
-from .model import Layout, QwenAudioAttackModel
+from .model import AttackModel, Layout
 from .objectives import internal_loss
 
 MAX_GRAD_SCALE = 10.0
@@ -66,7 +66,7 @@ def project_delta(delta: torch.Tensor, waveform: torch.Tensor, eps: float) -> to
 
 
 def run_pgd(
-    model: QwenAudioAttackModel,
+    model: AttackModel,
     waveform: torch.Tensor,
     layout: Layout,
     scheduler,

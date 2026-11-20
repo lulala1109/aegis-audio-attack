@@ -24,7 +24,7 @@ if [ "$RESUME" = "1" ]; then RESUME_ARG="--resume"; fi
 read -r -a SEEDS <<< "$SEEDS_STR"
 read -r -a FIXED_GPUS <<< "$GPUS_FIXED"
 if [ "${#FIXED_GPUS[@]}" -eq 0 ]; then FIXED_GPUS=(1); fi
-export HF_HOME="${HF_HOME:-/home/aisecurity/liuanran/hf-cache}"
+export HF_HOME="${HF_HOME:-/data/lar/hf-cache}"
 export HF_HUB_OFFLINE="${HF_HUB_OFFLINE:-1}"
 export TRANSFORMERS_OFFLINE="${TRANSFORMERS_OFFLINE:-1}"
 export TOKENIZERS_PARALLELISM=false

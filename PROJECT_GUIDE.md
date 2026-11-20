@@ -94,7 +94,7 @@ aegis/refusal.py
 ### 3.2 Qwen2-Audio
 
 ```text
-/home/aisecurity/liuanran/hf-cache/hub/
+/data/lar/hf-cache/hub/
   models--Qwen--Qwen2-Audio-7B-Instruct/
   snapshots/0a095220c30b7b31434169c3086508ef3ea5bf0a
 ```
@@ -102,7 +102,7 @@ aegis/refusal.py
 `HF_HOME`：
 
 ```text
-/home/aisecurity/liuanran/hf-cache
+/data/lar/hf-cache
 ```
 
 脚本和配置都把这个路径写死为默认值。覆盖优先级：
@@ -714,7 +714,7 @@ SNR 会从约 22.7 dB 降到约 16.9 dB
 cd /data/lar/aegis-audio-attack_main
 
 export PY=/home/aisecurity/miniconda3/envs/aegis-qwen/bin/python
-export HF_HOME=/home/aisecurity/liuanran/hf-cache
+export HF_HOME=/data/lar/hf-cache
 export HF_HUB_OFFLINE=1
 export TRANSFORMERS_OFFLINE=1
 export TOKENIZERS_PARALLELISM=false

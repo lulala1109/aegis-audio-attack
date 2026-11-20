@@ -20,11 +20,11 @@ from cdlw.model import QwenAudioAttackModel  # noqa: E402
 from cdlw.objectives import internal_loss  # noqa: E402
 
 DEFAULT_MODEL = (
-    "/home/aisecurity/liuanran/hf-cache/hub/"
+    "/data/lar/hf-cache/hub/"
     "models--Qwen--Qwen2-Audio-7B-Instruct/snapshots/"
     "0a095220c30b7b31434169c3086508ef3ea5bf0a"
 )
-DEFAULT_HF_HOME = "/home/aisecurity/liuanran/hf-cache"
+DEFAULT_HF_HOME = "/data/lar/hf-cache"
 
 
 def main() -> None:

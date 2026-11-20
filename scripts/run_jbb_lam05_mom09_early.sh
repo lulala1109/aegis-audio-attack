@@ -53,7 +53,7 @@ read -r -a GPU_LIST <<< "$GPUS"
 ATTACK_GPU="${ATTACK_GPU:-${GPU_LIST[0]:-0}}"
 JUDGE_GPU="${JUDGE_GPU:-${GPU_LIST[1]:-1}}"
 
-export HF_HOME="${HF_HOME:-/home/aisecurity/liuanran/hf-cache}"
+export HF_HOME="${HF_HOME:-/data/lar/hf-cache}"
 export HF_HUB_OFFLINE="${HF_HUB_OFFLINE:-1}"
 export TRANSFORMERS_OFFLINE="${TRANSFORMERS_OFFLINE:-1}"
 export TOKENIZERS_PARALLELISM=false

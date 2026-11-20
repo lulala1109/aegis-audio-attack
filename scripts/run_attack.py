@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
-"""Run layer-adaptive waveform PGD against Qwen2-Audio.
+"""Run layer-adaptive waveform PGD against Qwen2-Audio or Phi-4-multimodal.
 
 The layer prior is AEGIS's Qwen2-Audio late-layer range (19-31).  Methods differ
 only in their internal layer objective / weights, never in budget or projection.
+Select the target with ``--model-type qwen2_audio|phi4_mm`` (default qwen2_audio).
 
 Example:
     python scripts/run_attack.py \
@@ -10,6 +11,14 @@ Example:
         --limit 1 --steps 10 \
         --methods pgd,late_static,late_dynamic \
         --out-dir runs/smoke
+
+Example (Phi-4):
+    python scripts/run_attack.py \
+        --model-type phi4_mm \
+        --model-path /data/lar/models/Phi-4-multimodal-instruct \
+        --manifest data/manifests/advbench.jsonl \
+        --limit 1 --steps 10 --methods pgd \
+        --out-dir runs/phi4_smoke
 """
 
 from __future__ import annotations
@@ -40,17 +49,18 @@ from cdlw.io import (  # noqa: E402
     stable_id,
     write_json,
 )
-from cdlw.model import QwenAudioAttackModel  # noqa: E402
+from cdlw.model import ATTACK_MODELS, build_attack_model  # noqa: E402
 from cdlw.pgd import AttackConfig, run_pgd  # noqa: E402
 from cdlw.scheduler import LayerScheduler, SchedulerConfig, key_layer_prior  # noqa: E402
 
 
 DEFAULT_MODEL = (
-    "/home/aisecurity/liuanran/hf-cache/hub/"
+    "/data/lar/hf-cache/hub/"
     "models--Qwen--Qwen2-Audio-7B-Instruct/snapshots/"
     "0a095220c30b7b31434169c3086508ef3ea5bf0a"
 )
-DEFAULT_HF_HOME = "/home/aisecurity/liuanran/hf-cache"
+DEFAULT_PHI4_MODEL = "/data/lar/models/Phi-4-multimodal-instruct"
+DEFAULT_HF_HOME = "/data/lar/hf-cache"
 DEFAULT_JUDGE = "/data/lar/models/Llama-Guard-3-8B"
 
 
@@ -79,8 +89,9 @@ def target_hit(response: str | None, target: str) -> tuple[bool, bool]:
     return exact, first_word in response_norm.split()
 
 
-def method_spec(method: str, num_layers: int) -> tuple[list[int], str, str]:
-    late = list(range(19, 32))
+def method_spec(method: str, num_layers: int,
+                late_layers: list[int] | None = None) -> tuple[list[int], str, str]:
+    late = list(late_layers) if late_layers else list(range(19, 32))
     midlate = list(range(15, 32))
     all_layers = list(range(num_layers))
     specs = {
@@ -168,7 +179,12 @@ def main() -> None:
     parser.add_argument("--target", default=None)
     parser.add_argument("--target-key", default=None,
                         help="optional manifest field used as a per-row target")
+    parser.add_argument("--layers", default=None,
+                        help="comma-separated custom late-layer prior "
+                             "(overrides mechanism.key_layers; used by late_* methods)")
     parser.add_argument("--prompt-mode", default=None, choices=["native", "safety"])
+    parser.add_argument("--model-type", default=None, choices=sorted(ATTACK_MODELS),
+                        help="attack target: qwen2_audio (default) or phi4_mm")
     parser.add_argument("--device", default=None)
     parser.add_argument("--model-path", default=None)
     parser.add_argument("--hf-home", default=None)
@@ -210,7 +226,19 @@ def main() -> None:
     audio_cfg = cfg.get("audio", {})
     gen_cfg = cfg.get("generation", {})
 
-    model_path = args.model_path or model_cfg.get("path") or DEFAULT_MODEL
+    config_model_type = model_cfg.get("type", "qwen2_audio")
+    model_type = args.model_type or config_model_type
+    if model_type not in ATTACK_MODELS:
+        parser.error(
+            f"unknown model type {model_type!r}; choose from {sorted(ATTACK_MODELS)}")
+    default_model = DEFAULT_PHI4_MODEL if model_type == "phi4_mm" else DEFAULT_MODEL
+    if args.model_path:
+        model_path = args.model_path
+    elif model_type == config_model_type and model_cfg.get("path"):
+        model_path = model_cfg["path"]
+    else:
+        # The config's model.path belongs to a different target.
+        model_path = default_model
     hf_home = args.hf_home or cfg.get("hf_home") or DEFAULT_HF_HOME
     device = args.device or model_cfg.get("device", "cuda:0")
     prompt_mode = args.prompt_mode or model_cfg.get("prompt_mode", "native")
@@ -224,6 +252,14 @@ def main() -> None:
     append_eos = bool(target_cfg.get("append_eos", True))
     seed = args.seed if args.seed is not None else int(cfg.get("seed", 11))
 
+    late_layers = None
+    if args.layers:
+        late_layers = parse_layers(args.layers)
+    elif mech_cfg.get("key_layers"):
+        late_layers = [int(x) for x in mech_cfg["key_layers"]]
+    if late_layers and any(l < 0 or l >= 32 for l in late_layers):
+        parser.error(f"layers out of range for a 32-layer target: {late_layers}")
+
     configure_offline(hf_home)
     if not args.allow_nondeterministic:
         det = configure_determinism(seed, strict=args.strict_determinism)
@@ -233,8 +269,11 @@ def main() -> None:
         print("[determinism] disabled; only RNG seeded")
 
     methods = [part.strip() for part in args.methods.split(",") if part.strip()]
-    print(f"[INFO] loading {model_path} on {device} (prompt_mode={prompt_mode})")
-    model = QwenAudioAttackModel(
+    print(
+        f"[INFO] loading {model_path} on {device} "
+        f"(model_type={model_type}, prompt_mode={prompt_mode})")
+    model = build_attack_model(
+        model_type,
         model_path=model_path,
         device=device,
         prompt_mode=prompt_mode,
@@ -374,7 +413,8 @@ def main() -> None:
             print(f"[original] {original_response[:160]!r}")
 
         for method in pending_methods:
-            layers, mode, prior_scheme = method_spec(method, model.num_layers)
+            layers, mode, prior_scheme = method_spec(
+                method, model.num_layers, late_layers=late_layers)
             prior = key_layer_prior(layers, prior_scheme) if layers else None
             scheduler = LayerScheduler(
                 layers=layers,

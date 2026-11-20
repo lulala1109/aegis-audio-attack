@@ -19,7 +19,7 @@ from cdlw.io import append_jsonl, load_jsonl, write_json  # noqa: E402
 from cdlw.strongreject import build_judge  # noqa: E402
 
 DEFAULT_LOCAL_JUDGE = (
-    "/home/aisecurity/liuanran/hf-cache/hub/"
+    "/data/lar/hf-cache/hub/"
     "models--Qwen--Qwen2-Audio-7B-Instruct/snapshots/"
     "0a095220c30b7b31434169c3086508ef3ea5bf0a"
 )
